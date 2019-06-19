@@ -1,7 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/raven_control_generate_messages_cpp"
-  "/home/raven/bgu_raven_comp/devel/include/raven_control/raven_automove.h"
-  "/home/raven/bgu_raven_comp/devel/include/raven_control/raven_state.h"
+  "/home/bgusigma/amit_raven/devel/include/raven_control/raven_state.h"
+  "/home/bgusigma/amit_raven/devel/include/raven_control/raven_automove.h"
 )
 
 # Per-language clean rules from dependency scanning.

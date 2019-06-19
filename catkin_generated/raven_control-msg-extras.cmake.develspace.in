@@ -1,2 +1,2 @@
-set(raven_control_MESSAGE_FILES "/home/raven/bgu_raven_comp/src/raven_control/msg/raven_automove.msg;/home/raven/bgu_raven_comp/src/raven_control/msg/raven_state.msg")
+set(raven_control_MESSAGE_FILES "/home/bgusigma/amit_raven/src/raven_control/msg/raven_automove.msg;/home/bgusigma/amit_raven/src/raven_control/msg/raven_state.msg")
 set(raven_control_SERVICE_FILES "")

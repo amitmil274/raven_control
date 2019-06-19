@@ -28,6 +28,7 @@ class Raven_Control
 		bool SHOW_STATUS;
 		bool RECEIVED_FIRST;
 		bool PAUSE;
+		bool update_surgeon_mode = false;
 
 		pthread_t console_thread;
 		pthread_t ros_thread;
@@ -54,8 +55,8 @@ class Raven_Control
 		pthread_t gravity_thread;
 		pthread_t haptic_thread;
 
-		int current_runlevel = 0;
-		bool update_runlevel = false;
+		int current_surgeon_mode = 0;
+
 
 	public:
 		Raven_Control();		// constructor
@@ -75,6 +76,7 @@ class Raven_Control
 		static void *static_ros_process(void*);
 
 		void publish_raven_automove();			 // ROS publish
+
 		void publish_haptic_commands();
 		void callback_raven_state(raven_state); // ROS subscribe
 		void callback_haptic_state(haptic_device); // ROS subscribe

@@ -27,7 +27,7 @@ struct raven_automove_
 
   raven_automove_()
     : hdr()
-    , runlevel(0)
+    , surgeon_mode(0)
     , del_pos()
     , grasp()
     , tf_incr()  {
@@ -37,7 +37,7 @@ struct raven_automove_
   }
   raven_automove_(const ContainerAllocator& _alloc)
     : hdr(_alloc)
-    , runlevel(0)
+    , surgeon_mode(0)
     , del_pos()
     , grasp()
     , tf_incr()  {
@@ -54,8 +54,8 @@ struct raven_automove_
    typedef  ::std_msgs::Header_<ContainerAllocator>  _hdr_type;
   _hdr_type hdr;
 
-   typedef int32_t _runlevel_type;
-  _runlevel_type runlevel;
+   typedef int32_t _surgeon_mode_type;
+  _surgeon_mode_type surgeon_mode;
 
    typedef boost::array<int32_t, 6>  _del_pos_type;
   _del_pos_type del_pos;
@@ -101,7 +101,7 @@ namespace message_traits
 
 
 // BOOLTRAITS {'IsFixedSize': False, 'IsMessage': True, 'HasHeader': False}
-// {'raven_control': ['/home/raven/bgu_raven_comp/src/raven_control/msg'], 'std_msgs': ['/opt/ros/kinetic/share/std_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/kinetic/share/geometry_msgs/cmake/../msg']}
+// {'raven_control': ['/home/bgusigma/amit_raven/src/raven_control/msg'], 'std_msgs': ['/opt/ros/kinetic/share/std_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/kinetic/share/geometry_msgs/cmake/../msg']}
 
 // !!!!!!!!!!! ['__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_parsed_fields', 'constants', 'fields', 'full_name', 'has_header', 'header_present', 'names', 'package', 'parsed_fields', 'short_name', 'text', 'types']
 
@@ -144,12 +144,12 @@ struct MD5Sum< ::raven_control::raven_automove_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "b8bc12d5236960e65068c2b7d4c6bd7c";
+    return "22e12d2b288da4fee0a9e69710f26773";
   }
 
   static const char* value(const ::raven_control::raven_automove_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0xb8bc12d5236960e6ULL;
-  static const uint64_t static_value2 = 0x5068c2b7d4c6bd7cULL;
+  static const uint64_t static_value1 = 0x22e12d2b288da4feULL;
+  static const uint64_t static_value2 = 0xe0a9e69710f26773ULL;
 };
 
 template<class ContainerAllocator>
@@ -169,7 +169,7 @@ struct Definition< ::raven_control::raven_automove_<ContainerAllocator> >
   static const char* value()
   {
     return "Header      hdr\n\
-int32       	runlevel\n\
+int32 surgeon_mode\n\
 int32[6]    del_pos\n\
 float32[2]  grasp\n\
 geometry_msgs/Transform[2] tf_incr\n\
@@ -238,7 +238,7 @@ namespace serialization
     template<typename Stream, typename T> inline static void allInOne(Stream& stream, T m)
     {
       stream.next(m.hdr);
-      stream.next(m.runlevel);
+      stream.next(m.surgeon_mode);
       stream.next(m.del_pos);
       stream.next(m.grasp);
       stream.next(m.tf_incr);
@@ -263,8 +263,8 @@ struct Printer< ::raven_control::raven_automove_<ContainerAllocator> >
     s << indent << "hdr: ";
     s << std::endl;
     Printer< ::std_msgs::Header_<ContainerAllocator> >::stream(s, indent + "  ", v.hdr);
-    s << indent << "runlevel: ";
-    Printer<int32_t>::stream(s, indent + "  ", v.runlevel);
+    s << indent << "surgeon_mode: ";
+    Printer<int32_t>::stream(s, indent + "  ", v.surgeon_mode);
     s << indent << "del_pos[]" << std::endl;
     for (size_t i = 0; i < v.del_pos.size(); ++i)
     {

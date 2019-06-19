@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/raven/bgu_raven_comp/src
+CMAKE_SOURCE_DIR = /home/bgusigma/amit_raven/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/raven/bgu_raven_comp/src
+CMAKE_BINARY_DIR = /home/bgusigma/amit_raven/src
 
 # Utility rule file for roscpp_generate_messages_lisp.
 
@@ -63,10 +63,10 @@ raven_control/CMakeFiles/roscpp_generate_messages_lisp.dir/build: roscpp_generat
 .PHONY : raven_control/CMakeFiles/roscpp_generate_messages_lisp.dir/build
 
 raven_control/CMakeFiles/roscpp_generate_messages_lisp.dir/clean:
-	cd /home/raven/bgu_raven_comp/src/raven_control && $(CMAKE_COMMAND) -P CMakeFiles/roscpp_generate_messages_lisp.dir/cmake_clean.cmake
+	cd /home/bgusigma/amit_raven/src/raven_control && $(CMAKE_COMMAND) -P CMakeFiles/roscpp_generate_messages_lisp.dir/cmake_clean.cmake
 .PHONY : raven_control/CMakeFiles/roscpp_generate_messages_lisp.dir/clean
 
 raven_control/CMakeFiles/roscpp_generate_messages_lisp.dir/depend:
-	cd /home/raven/bgu_raven_comp/src && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/raven/bgu_raven_comp/src /home/raven/bgu_raven_comp/src/raven_control /home/raven/bgu_raven_comp/src /home/raven/bgu_raven_comp/src/raven_control /home/raven/bgu_raven_comp/src/raven_control/CMakeFiles/roscpp_generate_messages_lisp.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/bgusigma/amit_raven/src && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bgusigma/amit_raven/src /home/bgusigma/amit_raven/src/raven_control /home/bgusigma/amit_raven/src /home/bgusigma/amit_raven/src/raven_control /home/bgusigma/amit_raven/src/raven_control/CMakeFiles/roscpp_generate_messages_lisp.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : raven_control/CMakeFiles/roscpp_generate_messages_lisp.dir/depend
 

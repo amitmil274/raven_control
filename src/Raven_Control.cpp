@@ -366,15 +366,17 @@ void* Raven_Control::console_process(void)
 												cout<<"\tnew HAPTIC Center[RIGHT]: X,Y,Z = ("<<CURR_HAPTIC_STATE.position[3]<<",";
 												cout<<CURR_HAPTIC_STATE.position[4]<<","<<CURR_HAPTIC_STATE.position[5]<<")"<<endl;
 								print_menu = true;
-								update_runlevel = true;
-								current_runlevel = RL_PEDAL_DN;
+                                                                update_surgeon_mode = true;
+								current_surgeon_mode = 1;
 								CURR_HAPTIC_COMMANDS.lock_grasp = CURR_HAPTIC_COMMANDS.lock_position = CURR_HAPTIC_COMMANDS.lock_orientation = false;
 				break;
 			}
 			case 'u': // update runlevel to stop teleop
 			{
-				current_runlevel = RL_PEDAL_UP;
+
 				CURR_HAPTIC_COMMANDS.lock_grasp = CURR_HAPTIC_COMMANDS.lock_position = CURR_HAPTIC_COMMANDS.lock_orientation = true;;
+                                update_surgeon_mode = true;
+                                current_surgeon_mode = 0;
 				publish_haptic_commands();
 				break;
 			}
@@ -567,11 +569,11 @@ void Raven_Control::publish_raven_control()
 //cout<<"I am here"<<endl;
 	// (2) send new command
 	//raven_publisher.publish(msg_raven_control);
-	msg_raven_control.runlevel = CURR_RAVEN_STATE.runlevel;
-	if (update_runlevel)
+       //msg_raven_control.surgeon_mode= CURR_RAVEN_STATE.surgeon_mode;
+        if (update_surgeon_mode)
 	{
-		update_runlevel = false;
-		msg_raven_control.runlevel = current_runlevel;
+                update_surgeon_mode = false;
+                msg_raven_control.surgeon_mode = current_surgeon_mode;
 	}
 	raven_publisher_tester.publish(msg_raven_control);
 	ros::spinOnce();
