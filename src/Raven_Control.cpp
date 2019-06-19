@@ -513,6 +513,11 @@ void* Raven_Control::ros_process(void)
 				TF_INCR[RIGHT_ARM] = RIGHT_ARM_RAVEN.ComputeTrajectory(RIGHT_ARM_HAPTIC);
 				GRASP_INCR[RIGHT_ARM] = RIGHT_ARM_RAVEN.ComputeGrasp(RIGHT_ARM_HAPTIC);
 				GRASP_INCR[LEFT_ARM] = RIGHT_ARM_RAVEN.ComputeGrasp(LEFT_ARM_HAPTIC);
+				if (orientation _matching)
+				{
+					CURR_HAPTIC_COMMANDS.torque = computeOrientationMatch();
+					publish_haptic_commands();
+				}
 
 				publish_raven_control();
 
@@ -592,7 +597,9 @@ void Raven_Control::publish_haptic_commands()
 //cout<<"I am here"<<endl;
 	// (2) send new command
 	//raven_publisher.publish(msg_raven_control);
+
 	haptic_publisher.publish(CURR_HAPTIC_COMMANDS);
+
 	ros::spinOnce();
 
 	//(3) prepare for next publish
@@ -669,6 +676,10 @@ void Raven_Control::callback_haptic_state(haptic_device msg)
 	RECEIVED_FIRST = true;
 }
 
+float* computeOrientationMatch()
+{
+
+}
 
 // pointer version of callback function (not working for now)
 //..

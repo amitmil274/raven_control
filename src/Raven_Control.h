@@ -86,6 +86,7 @@ class Raven_Control
 		void output_PUBinfo();
 		void output_SUBinfo();
 
+
 		int getKey();
 
 		void init_haptic();			//AMIT
@@ -95,7 +96,7 @@ class Raven_Control
 		static void *static_gravity_process(void*);
 		void publish_haptic_device(double px, double py, double pz, double gripper);
 		void publish_raven_control();
-
+		float* computeOrientationMatch();
 }; //end of class definition
 
 #endif
