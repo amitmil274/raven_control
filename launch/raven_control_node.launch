@@ -1,0 +1,5 @@
+<launch>
+<env name="ROS_MASTER_URI" value="http://bguraven:11311/" />
+<node name="raven_ctrl" pkg="raven_control" type="raven_control_node" output="screen"/>
+<node name="sigma_node" pkg="sigma_ros" type="sigma_ros_node" output="screen"/>
+</launch>
