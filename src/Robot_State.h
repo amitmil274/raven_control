@@ -75,19 +75,26 @@ class Robot_State
 		tf::Vector3 Y_AXIS;
 		tf::Vector3 Z_AXIS;
 
-		tf::Vector3 Center;		// the center of the circle
-		tfScalar CenterGrasp;
-						// [NOTE]: good center (-85126,-22305,43358)
+		// POSITION
 		tf::Vector3 Current_Pos;	// current raven position
 		tf::Vector3 Previous_Pos;	// current raven position
-
 		tf::Vector3 Delta_Pos;
+		tf::Vector3 Center;		// the center of the circle
+
+		// ORIENTATION
 		tf::Quaternion Current_Ori;	// current raven rotation
 		tf::Quaternion Previous_Ori;	// current raven rotation
 
+		// FORCE FEEDBACKS
+		tf::Vector3 force_trans;
+		tf::Vector3 force_torque;
+		tfScalar force_grip;
+
+		// GRASP
 		tfScalar Current_Grasp;	// current raven rotation
 		tfScalar Previous_Grasp;	// current raven rotation
 		tfScalar Delta_Grasp;
+		tfScalar CenterGrasp;
 
 		tfScalar Radius;		// in mm
 		tfScalar Speed;
