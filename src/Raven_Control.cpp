@@ -67,7 +67,7 @@ void Raven_Control::init_sys()
 	this->RECEIVED_FIRST = false;
 	this->SHOW_STATUS = false;
 	this->PAUSE = false;
-
+	this->LOCKS.lock_grasp = this->LOCKS.lock_orientation = this->LOCKS.lock_position = false;
 }
 
 
@@ -331,20 +331,22 @@ void* Raven_Control::console_process(void)
 			}
 			case 'z': // lock haptic position
 			{
-				CURR_HAPTIC_COMMANDS.lock_position = !CURR_HAPTIC_COMMANDS.lock_position;
-				publish_haptic_commands();
+				LOCKS.lock_position = !LOCKS.lock_position;
+
+				//publish_haptic_commands();
 				break;
 			}
 			case 'x': // lock haptic orientation
 			{
-				CURR_HAPTIC_COMMANDS.lock_orientation = !CURR_HAPTIC_COMMANDS.lock_orientation;
-				publish_haptic_commands();
+				LOCKS.lock_orientation = !LOCKS.lock_orientation;
+				cout<<LOCKS.lock_orientation<<endl;
+				//publish_haptic_commands();
 				break;
 			}
 			case 'c': // lock haptic grasper
 			{
-				CURR_HAPTIC_COMMANDS.lock_grasp = !CURR_HAPTIC_COMMANDS.lock_grasp;
-				publish_haptic_commands();
+				LOCKS.lock_grasp = !LOCKS.lock_grasp;
+//				publish_haptic_commands();
 				break;
 			}
 			case 'd': // update runlevel to start teleop + set new center
@@ -368,16 +370,16 @@ void* Raven_Control::console_process(void)
 								print_menu = true;
                                                                 update_surgeon_mode = true;
 								current_surgeon_mode = 1;
-								CURR_HAPTIC_COMMANDS.lock_grasp = CURR_HAPTIC_COMMANDS.lock_position = CURR_HAPTIC_COMMANDS.lock_orientation = false;
+								LOCKS.lock_grasp = LOCKS.lock_position = LOCKS.lock_orientation = false;
 				break;
 			}
 			case 'u': // update runlevel to stop teleop
 			{
 
-				CURR_HAPTIC_COMMANDS.lock_grasp = CURR_HAPTIC_COMMANDS.lock_position = CURR_HAPTIC_COMMANDS.lock_orientation = true;;
+				LOCKS.lock_grasp = LOCKS.lock_position = LOCKS.lock_orientation = true;;
                                 update_surgeon_mode = true;
                                 current_surgeon_mode = 0;
-				publish_haptic_commands();
+//				publish_haptic_commands();
 				break;
 			}
 			/*
@@ -513,13 +515,16 @@ void* Raven_Control::ros_process(void)
 				TF_INCR[RIGHT_ARM] = RIGHT_ARM_RAVEN.ComputeTrajectory(RIGHT_ARM_HAPTIC);
 				GRASP_INCR[RIGHT_ARM] = RIGHT_ARM_RAVEN.ComputeGrasp(RIGHT_ARM_HAPTIC);
 				GRASP_INCR[LEFT_ARM] = RIGHT_ARM_RAVEN.ComputeGrasp(LEFT_ARM_HAPTIC);
-				if (orientation _matching)
-				{
-					CURR_HAPTIC_COMMANDS.torque = computeOrientationMatch();
-					publish_haptic_commands();
-				}
+				//if (orientation _matching)
+				//{
+					//CURR_HAPTIC_COMMANDS.torque = computeOrientationMatch();
 
+				//}
+
+				FORCES[LEFT_ARM] = LEFT_ARM_HAPTIC.ComputeForces(LEFT_ARM_RAVEN,LOCKS);
+				FORCES[RIGHT_ARM] = RIGHT_ARM_HAPTIC.ComputeForces(RIGHT_ARM_RAVEN,LOCKS);
 				publish_raven_control();
+				//publish_haptic_commands();
 
 
 			}
@@ -581,6 +586,26 @@ void Raven_Control::publish_raven_control()
                 msg_raven_control.surgeon_mode = current_surgeon_mode;
 	}
 	raven_publisher_tester.publish(msg_raven_control);
+
+	static haptic_commands msg_haptic_commands;
+	msg_haptic_commands.lock_grasp = LOCKS.lock_grasp;
+	msg_haptic_commands.lock_orientation = LOCKS.lock_orientation;
+	msg_haptic_commands.lock_position = LOCKS.lock_position;
+	int i = 0;
+	for (int m = 0; m++;m<2)
+	{
+		msg_haptic_commands.grip_force[m] = FORCES[m].force_grip;
+		for (int n = 0; n++;n<2)
+		{
+			msg_haptic_commands.force[i] = FORCES[m].force_trans[n];
+			msg_haptic_commands.torque[i] = FORCES[m].force_torque[n];
+			i++;
+		}
+	}
+
+
+	haptic_publisher.publish(msg_haptic_commands);
+
 	ros::spinOnce();
 
 	//(3) prepare for next publish
@@ -674,11 +699,6 @@ void Raven_Control::callback_haptic_state(haptic_device msg)
 	// (2) update recieved data count
 	SUB_COUNT ++;
 	RECEIVED_FIRST = true;
-}
-
-float* computeOrientationMatch()
-{
-
 }
 
 // pointer version of callback function (not working for now)

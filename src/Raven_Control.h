@@ -45,6 +45,8 @@ class Raven_Control
 		haptic_commands CURR_HAPTIC_COMMANDS;
 		tf::Transform TF_INCR[2];
 		tfScalar GRASP_INCR[2];
+		force_feedback FORCES[2];
+		haptic_locks LOCKS;
 		
 		Robot_State LEFT_ARM_RAVEN;
 		Robot_State RIGHT_ARM_RAVEN;

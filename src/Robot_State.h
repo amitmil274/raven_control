@@ -17,8 +17,8 @@
 #include <queue>
 #include "raven_automove.h"
 #include "raven_state.h"
-#include "haptic_device.h"
-#include "haptic_commands.h"
+#include "sigma_ros/haptic_device.h"
+#include "sigma_ros/haptic_commands.h"
 
 //#include "raven_2/haptic_device.h"
 
@@ -58,6 +58,29 @@ using namespace std;
 using namespace sigma_ros;
 using namespace raven_control;
 
+#define KP    100.0
+#define KVP    10.0
+#define MAXF    4.0
+#define KR      0.3
+#define KWR     0.02
+#define MAXT    0.1
+#define KG    100.0
+#define KVG     5.0
+#define MAXG    1.0
+
+struct force_feedback
+{
+tf::Vector3 force_trans;
+tf::Vector3 force_torque;
+tfScalar force_grip;
+};
+struct haptic_locks
+{
+	bool lock_position;
+	bool lock_orientation;
+	bool lock_grasp;
+};
+
 enum PATH_STATE{
 	AROUND_CIRCLE,	// go along circle trajectory
 	MOVETO_CIRCLE	// move to the new circle (when radius or center change)
@@ -80,21 +103,22 @@ class Robot_State
 		tf::Vector3 Previous_Pos;	// current raven position
 		tf::Vector3 Delta_Pos;
 		tf::Vector3 Center;		// the center of the circle
+		tf::Vector3 Velocity_Pos;
 
 		// ORIENTATION
 		tf::Quaternion Current_Ori;	// current raven rotation
 		tf::Quaternion Previous_Ori;	// current raven rotation
+		tf::Vector3 Velocity_Orientation;
 
 		// FORCE FEEDBACKS
-		tf::Vector3 force_trans;
-		tf::Vector3 force_torque;
-		tfScalar force_grip;
+		force_feedback forces;
 
 		// GRASP
 		tfScalar Current_Grasp;	// current raven rotation
 		tfScalar Previous_Grasp;	// current raven rotation
 		tfScalar Delta_Grasp;
 		tfScalar CenterGrasp;
+		tfScalar Velocity_Grasp;
 
 		tfScalar Radius;		// in mm
 		tfScalar Speed;
@@ -141,10 +165,11 @@ class Robot_State
 		bool set_Center(boost::array<float, 6>, boost::array<float, 2>);
 
 		bool set_Current_Pos(boost::array<int, 6>);
-		bool set_Current_Pos(boost::array<float, 6>);
-		bool set_Current_Grasp(boost::array<float, 2>);
+		bool set_Current_Pos(boost::array<float, 6>);//,boost::array<float, 6>);
+		bool set_Current_Grasp(boost::array<float, 2>);//,boost::array<float, 2>);
 
 		bool set_Current_Ori(boost::array<float, 18>);
+		bool set_Current_Ori(boost::array<float, 18>,boost::array<float, 6>);
 		tfScalar get_Radius();
 		tfScalar get_Radius_Range();
 		tfScalar get_Speed();
@@ -168,6 +193,7 @@ class Robot_State
 		tfScalar DistanceOf(tf::Vector3,tf::Vector3);
 		tf::Transform ComputeCircleTrajectory();
 		tf::Transform ComputeTrajectory(Robot_State);
+		force_feedback ComputeForces(Robot_State, haptic_locks);
 		tf::Transform ComputeNullTrajectory();
 		tfScalar ComputeGrasp(Robot_State);
 };

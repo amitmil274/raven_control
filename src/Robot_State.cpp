@@ -276,7 +276,7 @@ bool Robot_State::set_Current_Pos(boost::array<int, 6> currpos)
 	return true;
 }
 
-bool Robot_State::set_Current_Pos(boost::array<float, 6> currpos)
+bool Robot_State::set_Current_Pos(boost::array<float, 6> currpos)//, boost::array<float, 6> velocity)
 {
 	tfScalar X,Y,Z;
 
@@ -286,12 +286,16 @@ bool Robot_State::set_Current_Pos(boost::array<float, 6> currpos)
 		X = currpos[0];
 		Y = currpos[1];
 		Z = currpos[2];
+	//	Velocity_Pos.setValue(velocity[0],velocity[1],velocity[2]);
+
 	}
 	else if(ArmType == LEFT_ARM)
 	{
 		X = currpos[3];
 		Y = currpos[4];
 		Z = currpos[5];
+	//	Velocity_Pos.setValue(velocity[3],velocity[4],velocity[5]);
+
 	}
 	else //weird case
 	{
@@ -308,7 +312,7 @@ bool Robot_State::set_Current_Pos(boost::array<float, 6> currpos)
 	return true;
 }
 
-bool Robot_State::set_Current_Grasp(boost::array<float, 2> currgrasp)
+bool Robot_State::set_Current_Grasp(boost::array<float, 2> currgrasp)//, boost::array<float, 2> velocity)
 {
 
 
@@ -318,10 +322,12 @@ bool Robot_State::set_Current_Grasp(boost::array<float, 2> currgrasp)
 	if(ArmType == RIGHT_ARM)
 	{
 		Current_Grasp = currgrasp[0];
+		//Velocity_Grasp = velocity[0];
 	}
 	else if(ArmType == LEFT_ARM)
 	{
 		Current_Grasp = -currgrasp[1];
+		//Velocity_Grasp = -velocity[1];
 	}
 	else //weird case
 	{
@@ -349,9 +355,110 @@ bool Robot_State::set_Current_Ori(boost::array<float, 18> rot_matix)
 	int tempType = ArmType;
 	if (DeviceType == HAPTIC)
 		if (ArmType == LEFT_ARM)
+			{
 			tempType = RIGHT_ARM;
+			//Velocity_Orientation.setValue(velocity[3],velocity[4],velocity[5]);
+			}
 		else
+		{
 			tempType = LEFT_ARM;
+		//	Velocity_Orientation.setValue(velocity[0],velocity[1],velocity[2]);
+		}
+
+	if(tempType == LEFT_ARM)
+	{
+		m00 = rot_matix[0];
+		m01 = rot_matix[1];
+		m02 = rot_matix[2];
+		m10 = rot_matix[3];
+		m11 = rot_matix[4];
+		m12 = rot_matix[5];
+		m20 = rot_matix[6];
+		m21 = rot_matix[7];
+		m22 = rot_matix[8];
+	}
+	else if(tempType == RIGHT_ARM)
+	{
+		m00 = rot_matix[9];
+		m01 = rot_matix[10];
+		m02 = rot_matix[11];
+		m10 = rot_matix[12];
+		m11 = rot_matix[13];
+		m12 = rot_matix[14];
+		m20 = rot_matix[15];
+		m21 = rot_matix[16];
+		m22 = rot_matix[17];
+	}
+	else // weird case
+	{
+		return false;
+	}
+
+	tr = m00 + m11 + m22;
+
+	if (tr > 0)
+	{
+		tfScalar S = sqrt(tr+1.0) * 2; // S=4*qw
+		qw = 0.25 * S;
+		qx = (m21 - m12) / S;
+		qy = (m02 - m20) / S;
+		qz = (m10 - m01) / S;
+	}
+	else if ((m00 > m11)&(m00 > m22))
+	{
+		tfScalar S = sqrt(1.0 + m00 - m11 - m22) * 2; // S=4*qx
+		qw = (m21 - m12) / S;
+		qx = 0.25 * S;
+		qy = (m01 + m10) / S;
+		qz = (m02 + m20) / S;
+	}
+	else if (m11 > m22)
+	{
+		tfScalar S = sqrt(1.0 + m11 - m00 - m22) * 2; // S=4*qy
+		qw = (m02 - m20) / S;
+		qx = (m01 + m10) / S;
+		qy = 0.25 * S;
+		qz = (m12 + m21) / S;
+	}
+	else
+	{
+		tfScalar S = sqrt(1.0 + m22 - m00 - m11) * 2; // S=4*qz
+		qw = (m10 - m01) / S;
+		qx = (m02 + m20) / S;
+		qy = (m12 + m21) / S;
+		qz = 0.25 * S;
+	}
+
+
+	tf::Quaternion q_temp(qx,qy,qz,qw);
+	tf::Quaternion extra_rotation(0,0,0,1);
+	Previous_Ori=Current_Ori;
+	if (DeviceType == HAPTIC)
+		if(ArmType == RIGHT_ARM)
+			extra_rotation = tf::Quaternion( 0.5, -0.5, 0.5, 0.5 );
+		else
+			extra_rotation = tf::Quaternion( 0.5, 0.5, 0.5, -0.5 );
+
+	Current_Ori=q_temp*extra_rotation;
+
+	return true;
+}
+bool Robot_State::set_Current_Ori(boost::array<float, 18> rot_matix,boost::array<float, 6> velocity)
+{
+	tfScalar m00, m01, m02, m10, m11, m12, m20, m21, m22;
+	tfScalar qw,qx,qy,qz,tr;
+	int tempType = ArmType;
+	if (DeviceType == HAPTIC)
+		if (ArmType == LEFT_ARM)
+			{
+			tempType = RIGHT_ARM;
+		//	Velocity_Orientation.setValue(velocity[3],velocity[4],velocity[5]);
+			}
+		else
+		{
+			tempType = LEFT_ARM;
+		//	Velocity_Orientation.setValue(velocity[0],velocity[1],velocity[2]);
+		}
 
 	if(tempType == LEFT_ARM)
 	{
@@ -423,7 +530,7 @@ bool Robot_State::set_Current_Ori(boost::array<float, 18> rot_matix)
 	Previous_Ori=Current_Ori;
 	if (DeviceType == HAPTIC)
 		if(ArmType == RIGHT_ARM)
-			extra_rotation = tf::Quaternion( 0.5, -0.5, 0.5, 0.5    );
+			extra_rotation = tf::Quaternion( 0.5, -0.5, 0.5, 0.5 );
 		else
 			extra_rotation = tf::Quaternion( 0.5, 0.5, 0.5, -0.5 );
 
@@ -860,47 +967,6 @@ tfScalar Robot_State::ComputeGrasp(Robot_State hapticDev)
 	tfScalar GRASP_INCR;
 
 	pthread_mutex_lock(&data2Mutex);
-	// (1) set position increment (only Y-Z plane)
-	//	switch(PathState)
-	//	{
-	//		case MOVETO_CIRCLE: // finding orbit case
-	//
-	//			if(Distance == 0) // exactly at center
-	//			{
-	//				if(Base_Plane == XZ_PLANE)
-	//					Delta_Pos.setValue(Speed,0,0);
-	//				else
-	//					Delta_Pos.setValue(0,Speed,0);
-	//			}
-	//			else // either inside of outside circle
-	//			{
-	//				tf::Vector3 Delta_Pos1 = TuneRadiusMotion();  // normal direction
-	//				tf::Vector3 Delta_Pos2 = AutoCircleMotion4(); // tangent direction
-	//
-	//				//..
-	//				K = Kp * tfPow(Error,Modi_Dista_Pow);
-	//
-	//				K = (K>1) ? 1 : K; // K should not be larger than 1
-	//
-	//				Delta_Pos = (K)*Delta_Pos1 + (1-K)*Delta_Pos2;
-	//
-	//				Delta_Pos = Delta_Pos.normalized()*Speed;  //..
-	//			}
-	//			break;
-	//
-	//		case AROUND_CIRCLE:  // in orbit case
-	//
-	//			Delta_Pos = AutoCircleMotion4();
-	//			break;
-	//
-	//		default:
-	//			ROS_ERROR("Undefined PathState. We can only send NULL Trajectory!");
-	//			Delta_Pos.setValue(0,0,0);
-	//			break;
-	//	}
-
-	//Delta_Pos = Scale*(hapticDev.Current_Pos-hapticDev.Center)-(this->Current_Pos-this->Center)*0.000001;
-	//Delta_Pos = (this->Center)-Scale*(hapticDev.Current_Pos-hapticDev.Center)*500000;
 
 	GRASP_INCR = ((this->CenterGrasp)-(hapticDev.CenterGrasp-hapticDev.Current_Grasp)*GraspScale)*1000;//*(hapticDev.Current_Grasp)*1000*GraspScale;
 
@@ -908,6 +974,50 @@ tfScalar Robot_State::ComputeGrasp(Robot_State hapticDev)
 
 	return GRASP_INCR;
 }
+force_feedback Robot_State::ComputeForces(Robot_State ravenArm, haptic_locks lock_state)
+{
+	force_feedback forces;
+	// FIRST SET ALL TO ZERO
+	forces.force_grip = 0;
+	forces.force_trans.setValue(0.0,0.0,0.0);
+	forces.force_torque.setValue(0.0,0.0,0.0);
+	// CHECK WHICH ONES ARE LOCKED
+	//int index[3] = {0,1,2};
+//	if (this->ArmType == RIGHT_ARM)
+//		index = {0,1,2};
+//	else
+//		index = {3,4,5};
+
+	if (lock_state.lock_position) // POSITION LOCK
+	{
+		forces.force_trans = - KP * (this->Current_Pos-this->Center);
+		// TODO ADD VELOCITY TO ROBOT STATE
+		forces.force_trans  -= KVP * Velocity_Pos;
+		//	ROS_INFO("setting lock pos");
+	}
+
+	if (lock_state.lock_orientation) // ORIENTATION LOCK
+	{
+		tf::Quaternion qTemp;
+		tf::Matrix3x3 mTemp(this->Current_Ori);
+		qTemp = this->Current_Ori.inverse();
+
+		forces.force_torque = mTemp * (KR * qTemp.getAngle() * qTemp.getAxis());
+		forces.force_torque -= KWR * Velocity_Orientation;
+	}
+	if (lock_state.lock_grasp) // GRASP LOCK
+	{
+		forces.force_grip = - KG * (this->Current_Grasp-this->CenterGrasp);
+		forces.force_grip   -= KVG * Velocity_Grasp;
+	}
+
+	// ORIENTATION MATCHING
+
+
+	return forces;
+
+}
+
 
 /**
  *	\fn tf::Transform ComputeNullTrajectory()
