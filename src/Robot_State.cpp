@@ -276,7 +276,7 @@ bool Robot_State::set_Current_Pos(boost::array<int, 6> currpos)
 	return true;
 }
 
-bool Robot_State::set_Current_Pos(boost::array<float, 6> currpos)//, boost::array<float, 6> velocity)
+bool Robot_State::set_Current_Pos(boost::array<float, 6> currpos, boost::array<float, 6> velocity)
 {
 	tfScalar X,Y,Z;
 
@@ -286,7 +286,7 @@ bool Robot_State::set_Current_Pos(boost::array<float, 6> currpos)//, boost::arra
 		X = currpos[0];
 		Y = currpos[1];
 		Z = currpos[2];
-	//	Velocity_Pos.setValue(velocity[0],velocity[1],velocity[2]);
+		Velocity_Pos.setValue(velocity[0],velocity[1],velocity[2]);
 
 	}
 	else if(ArmType == LEFT_ARM)
@@ -294,7 +294,7 @@ bool Robot_State::set_Current_Pos(boost::array<float, 6> currpos)//, boost::arra
 		X = currpos[3];
 		Y = currpos[4];
 		Z = currpos[5];
-	//	Velocity_Pos.setValue(velocity[3],velocity[4],velocity[5]);
+		Velocity_Pos.setValue(velocity[3],velocity[4],velocity[5]);
 
 	}
 	else //weird case
@@ -312,7 +312,7 @@ bool Robot_State::set_Current_Pos(boost::array<float, 6> currpos)//, boost::arra
 	return true;
 }
 
-bool Robot_State::set_Current_Grasp(boost::array<float, 2> currgrasp)//, boost::array<float, 2> velocity)
+bool Robot_State::set_Current_Grasp(boost::array<float, 2> currgrasp, boost::array<float, 2> velocity)
 {
 
 
@@ -322,12 +322,12 @@ bool Robot_State::set_Current_Grasp(boost::array<float, 2> currgrasp)//, boost::
 	if(ArmType == RIGHT_ARM)
 	{
 		Current_Grasp = currgrasp[0];
-		//Velocity_Grasp = velocity[0];
+		Velocity_Grasp = velocity[0];
 	}
 	else if(ArmType == LEFT_ARM)
 	{
 		Current_Grasp = -currgrasp[1];
-		//Velocity_Grasp = -velocity[1];
+		Velocity_Grasp = -velocity[1];
 	}
 	else //weird case
 	{
@@ -362,7 +362,7 @@ bool Robot_State::set_Current_Ori(boost::array<float, 18> rot_matix)
 		else
 		{
 			tempType = LEFT_ARM;
-		//	Velocity_Orientation.setValue(velocity[0],velocity[1],velocity[2]);
+			//Velocity_Orientation.setValue(velocity[0],velocity[1],velocity[2]);
 		}
 
 	if(tempType == LEFT_ARM)
@@ -452,12 +452,12 @@ bool Robot_State::set_Current_Ori(boost::array<float, 18> rot_matix,boost::array
 		if (ArmType == LEFT_ARM)
 			{
 			tempType = RIGHT_ARM;
-		//	Velocity_Orientation.setValue(velocity[3],velocity[4],velocity[5]);
+			Velocity_Orientation.setValue(velocity[3],velocity[4],velocity[5]);
 			}
 		else
 		{
 			tempType = LEFT_ARM;
-		//	Velocity_Orientation.setValue(velocity[0],velocity[1],velocity[2]);
+			Velocity_Orientation.setValue(velocity[0],velocity[1],velocity[2]);
 		}
 
 	if(tempType == LEFT_ARM)
@@ -1013,6 +1013,18 @@ force_feedback Robot_State::ComputeForces(Robot_State ravenArm, haptic_locks loc
 
 	// ORIENTATION MATCHING
 
+	tf::Quaternion qTemp2;
+	tf::Matrix3x3 hapticCenterOri, hapticDelta;
+	hapticDelta = hapticCenterOri.setEulerYPR(0,M_PI/4,0)*this->Current_Ori;
+	ravenDelta =
+	mTemp2.setEulerYPR(0,M_PI/4,0);
+	tf::Matrix3x3 delta_ori45;
+	delta_ori45 = mTemp2 * curr_ori[id];
+	tfScalar r,p,y;
+	delta_ori.getRPY(r,p,y);
+	torque[id].setValue(-r*KR,-p*KR,-y*KR);
+	if (( normt = torque[id].length()) > MAXT) torque[id] *= MAXT/normt;
+			torque[id] -= KWR * velorientation[id];
 
 	return forces;
 

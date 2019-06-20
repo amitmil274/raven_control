@@ -456,7 +456,7 @@ void* Raven_Control::ros_process(void)
 		else
 		{
 			cout<<"First raven_state received."<<endl;
-			cout<<"Save as default center potition."<<endl;
+			cout<<"Save as default center position."<<endl;
 
 			LEFT_ARM_RAVEN.set_Center(CURR_RAVEN_STATE.pos,CURR_RAVEN_STATE.grasp);
 			LEFT_ARM_HAPTIC.set_Center(CURR_HAPTIC_STATE.position,CURR_HAPTIC_STATE.gripper);
@@ -477,13 +477,13 @@ void* Raven_Control::ros_process(void)
 
 
 
-			LEFT_ARM_HAPTIC.set_Current_Pos(CURR_HAPTIC_STATE.position);
-			LEFT_ARM_HAPTIC.set_Current_Ori(CURR_HAPTIC_STATE.orientation);
-			LEFT_ARM_HAPTIC.set_Current_Grasp(CURR_HAPTIC_STATE.gripper);
+			LEFT_ARM_HAPTIC.set_Current_Pos(CURR_HAPTIC_STATE.position,CURR_HAPTIC_STATE.vel_position);
+			LEFT_ARM_HAPTIC.set_Current_Ori(CURR_HAPTIC_STATE.orientation,CURR_HAPTIC_STATE.vel_orientation);
+			LEFT_ARM_HAPTIC.set_Current_Grasp(CURR_HAPTIC_STATE.gripper,CURR_HAPTIC_STATE.vel_gripper);
 
-			RIGHT_ARM_HAPTIC.set_Current_Pos(CURR_HAPTIC_STATE.position);
-			RIGHT_ARM_HAPTIC.set_Current_Ori(CURR_HAPTIC_STATE.orientation);
-			RIGHT_ARM_HAPTIC.set_Current_Grasp(CURR_HAPTIC_STATE.gripper);
+			RIGHT_ARM_HAPTIC.set_Current_Pos(CURR_HAPTIC_STATE.position,CURR_HAPTIC_STATE.vel_position);
+			RIGHT_ARM_HAPTIC.set_Current_Ori(CURR_HAPTIC_STATE.orientation,CURR_HAPTIC_STATE.vel_orientation);
+			RIGHT_ARM_HAPTIC.set_Current_Grasp(CURR_HAPTIC_STATE.gripper,CURR_HAPTIC_STATE.vel_gripper);
 
 
 			// (2) generate new command (plan trajectory)

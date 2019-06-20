@@ -165,8 +165,8 @@ class Robot_State
 		bool set_Center(boost::array<float, 6>, boost::array<float, 2>);
 
 		bool set_Current_Pos(boost::array<int, 6>);
-		bool set_Current_Pos(boost::array<float, 6>);//,boost::array<float, 6>);
-		bool set_Current_Grasp(boost::array<float, 2>);//,boost::array<float, 2>);
+		bool set_Current_Pos(boost::array<float, 6>,boost::array<float, 6>);
+		bool set_Current_Grasp(boost::array<float, 2>,boost::array<float, 2>);
 
 		bool set_Current_Ori(boost::array<float, 18>);
 		bool set_Current_Ori(boost::array<float, 18>,boost::array<float, 6>);
