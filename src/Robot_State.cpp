@@ -20,9 +20,11 @@ Robot_State::Robot_State()
 	Z_AXIS.setValue(0,0,1);
 
 	Current_Pos.setValue(0,0,0);
+	Previous_Pos = Current_Pos;
 	tf::Quaternion tempQ(0,0,0,1);
-	Current_Ori=tempQ;
-
+	Current_Ori = Previous_Ori =tempQ;
+	Current_Ori_mat.setIdentity();
+	Previous_Ori_mat.setIdentity();
 	pthread_mutexattr_init(&data1MutexAttr);
 	pthread_mutexattr_setprotocol(&data1MutexAttr,PTHREAD_PRIO_INHERIT);
 	pthread_mutex_init(&data1Mutex,&data1MutexAttr);
@@ -355,10 +357,10 @@ bool Robot_State::set_Current_Ori(boost::array<float, 18> rot_matix)
 	int tempType = ArmType;
 	if (DeviceType == HAPTIC)
 		if (ArmType == LEFT_ARM)
-			{
+		{
 			tempType = RIGHT_ARM;
 			//Velocity_Orientation.setValue(velocity[3],velocity[4],velocity[5]);
-			}
+		}
 		else
 		{
 			tempType = LEFT_ARM;
@@ -433,14 +435,16 @@ bool Robot_State::set_Current_Ori(boost::array<float, 18> rot_matix)
 	tf::Quaternion q_temp(qx,qy,qz,qw);
 	tf::Quaternion extra_rotation(0,0,0,1);
 	Previous_Ori=Current_Ori;
-	if (DeviceType == HAPTIC)
-		if(ArmType == RIGHT_ARM)
-			extra_rotation = tf::Quaternion( 0.5, -0.5, 0.5, 0.5 );
-		else
-			extra_rotation = tf::Quaternion( 0.5, 0.5, 0.5, -0.5 );
+	//	if (DeviceType == HAPTIC)
+	//		if(ArmType == RIGHT_ARM)
+	//			extra_rotation = tf::Quaternion( 0.5, -0.5, 0.5, 0.5 );
+	//		else
+	//			extra_rotation = tf::Quaternion( 0.5, 0.5, 0.5, -0.5 );
 
 	Current_Ori=q_temp*extra_rotation;
-
+	Previous_Ori_mat = Current_Ori_mat;
+	tf::Matrix3x3 tempMat(Current_Ori);
+	Current_Ori_mat = tempMat;
 	return true;
 }
 bool Robot_State::set_Current_Ori(boost::array<float, 18> rot_matix,boost::array<float, 6> velocity)
@@ -448,16 +452,19 @@ bool Robot_State::set_Current_Ori(boost::array<float, 18> rot_matix,boost::array
 	tfScalar m00, m01, m02, m10, m11, m12, m20, m21, m22;
 	tfScalar qw,qx,qy,qz,tr;
 	int tempType = ArmType;
+	Previous_Ori_mat = Current_Ori_mat;
 	if (DeviceType == HAPTIC)
 		if (ArmType == LEFT_ARM)
-			{
+		{
 			tempType = RIGHT_ARM;
 			Velocity_Orientation.setValue(velocity[3],velocity[4],velocity[5]);
-			}
+			Current_Ori_mat.setValue(rot_matix[9],rot_matix[10],rot_matix[11],rot_matix[12],rot_matix[13],rot_matix[14],rot_matix[15],rot_matix[16],rot_matix[17]);
+		}
 		else
 		{
 			tempType = LEFT_ARM;
 			Velocity_Orientation.setValue(velocity[0],velocity[1],velocity[2]);
+			Current_Ori_mat.setValue(rot_matix[0],rot_matix[1],rot_matix[2],rot_matix[3],rot_matix[4],rot_matix[5],rot_matix[6],rot_matix[7],rot_matix[8]);
 		}
 
 	if(tempType == LEFT_ARM)
@@ -528,14 +535,16 @@ bool Robot_State::set_Current_Ori(boost::array<float, 18> rot_matix,boost::array
 	tf::Quaternion q_temp(qx,qy,qz,qw);
 	tf::Quaternion extra_rotation(0,0,0,1);
 	Previous_Ori=Current_Ori;
-	if (DeviceType == HAPTIC)
-		if(ArmType == RIGHT_ARM)
-			extra_rotation = tf::Quaternion( 0.5, -0.5, 0.5, 0.5 );
-		else
-			extra_rotation = tf::Quaternion( 0.5, 0.5, 0.5, -0.5 );
-
+	//	if (DeviceType == HAPTIC)
+	//		if(ArmType == RIGHT_ARM)
+	//			extra_rotation = tf::Quaternion( 0.5, -0.5, 0.5, 0.5 );
+	//		else
+	//			extra_rotation = tf::Quaternion( 0.5, 0.5, 0.5, -0.5 );
+	//
 	Current_Ori=q_temp*extra_rotation;
-
+	//	Previous_Ori_mat = Current_Ori_mat;
+	//	tf::Matrix3x3 tempMat(Current_Ori);
+	//	Current_Ori_mat = tempMat;
 	return true;
 }
 
@@ -939,7 +948,6 @@ tf::Transform Robot_State::ComputeTrajectory(Robot_State hapticDev)
 	//	}
 
 	//Delta_Pos = Scale*(hapticDev.Current_Pos-hapticDev.Center)-(this->Current_Pos-this->Center)*0.000001;
-	Delta_Pos = (this->Center)-Scale*(hapticDev.Current_Pos-hapticDev.Center)*500000;
 
 
 	// (2) no rotation increment
@@ -949,11 +957,36 @@ tf::Transform Robot_State::ComputeTrajectory(Robot_State hapticDev)
 	tfScalar QZ = 0;
 	tf::Quaternion Delta_Ori(QX,QY,QZ,W);
 	// diff * q1 = q2  --->  diff = q2 * inverse(q1)
-	tf::Quaternion tempQ = hapticDev.Previous_Ori;
+	tf::Quaternion tempQprev = hapticDev.Previous_Ori;
+	tf::Quaternion tempQcurr = hapticDev.Current_Ori;
 	//tempQ = tempQ.normalized();
 	//urrent_Ori = Current_Ori.normalized();
-	tempQ = tempQ.inverse();
-	Delta_Ori = tempQ*hapticDev.Current_Ori;
+	tf::Quaternion extra_rotation(0,0,0,1);
+	if(hapticDev.ArmType == RIGHT_ARM)
+		extra_rotation = tf::Quaternion( 0.5, -0.5, 0.5, -0.5 );
+	else
+		extra_rotation = tf::Quaternion( -0.5, 0.5, 0.5, -0.5 );
+
+	tf::Vector3 u(extra_rotation.x(), extra_rotation.y(), extra_rotation.z());
+	// Extract the scalar part of the quaternion
+	float s = extra_rotation.w();
+	//Delta_Pos = extra_rotation.Delta_Pos.rotate()
+	// Do the math
+	Delta_Pos = Scale*(hapticDev.Center-hapticDev.Current_Pos)*500000;
+	Delta_Pos = 2.0f * u.dot(Delta_Pos) * u
+			+ (s*s - u.dot(u)) * Delta_Pos
+			+ 2.0f * s * u.cross(Delta_Pos);
+//	if(hapticDev.ArmType != RIGHT_ARM)
+//	{
+//		Delta_Pos.setX(-Delta_Pos.x());
+//		Delta_Pos.setY(-Delta_Pos.y());
+//	}
+	Delta_Pos = (this->Center)-Delta_Pos;
+//	if(hapticDev.ArmType != RIGHT_ARM)
+	//cout<<Delta_Pos.x()<<"\t"<<Delta_Pos.y()<<"\t"<<Delta_Pos.z()<<"\t"<<endl;
+	tempQcurr=tempQcurr*extra_rotation;
+	tempQprev = tempQprev.inverse();
+	Delta_Ori = tempQprev*tempQcurr;
 	// (3) add increment to return variable
 	TF_INCR.setOrigin(Delta_Pos);
 	TF_INCR.setRotation(Delta_Ori);
@@ -983,10 +1016,10 @@ force_feedback Robot_State::ComputeForces(Robot_State ravenArm, haptic_locks loc
 	forces.force_torque.setValue(0.0,0.0,0.0);
 	// CHECK WHICH ONES ARE LOCKED
 	//int index[3] = {0,1,2};
-//	if (this->ArmType == RIGHT_ARM)
-//		index = {0,1,2};
-//	else
-//		index = {3,4,5};
+	//	if (this->ArmType == RIGHT_ARM)
+	//		index = {0,1,2};
+	//	else
+	//		index = {3,4,5};
 
 	if (lock_state.lock_position) // POSITION LOCK
 	{
@@ -994,16 +1027,23 @@ force_feedback Robot_State::ComputeForces(Robot_State ravenArm, haptic_locks loc
 		// TODO ADD VELOCITY TO ROBOT STATE
 		forces.force_trans  -= KVP * Velocity_Pos;
 		//	ROS_INFO("setting lock pos");
+		//ROS_INFO("HAPTIC FEEDBACK");
+
 	}
 
 	if (lock_state.lock_orientation) // ORIENTATION LOCK
 	{
-		tf::Quaternion qTemp;
-		tf::Matrix3x3 mTemp(this->Current_Ori);
-		qTemp = this->Current_Ori.inverse();
-
-		forces.force_torque = mTemp * (KR * qTemp.getAngle() * qTemp.getAxis());
+		tf::Quaternion qTemp2;
+		tf::Matrix3x3 hapticCenterOri, hapticDelta;
+		hapticCenterOri.setIdentity();
+		hapticCenterOri.setEulerYPR(0,-M_PI/4,0);
+		hapticDelta =this->Current_Ori_mat* hapticCenterOri.inverse();
+		tfScalar r,p,y;
+		hapticDelta.getRPY(r,p,y);
+		forces.force_torque.setValue(-r*KR,-p*KR,-y*KR);
 		forces.force_torque -= KWR * Velocity_Orientation;
+		double normt;
+		if (( normt = forces.force_torque.length()) > MAXT) forces.force_torque *= MAXT/normt;
 	}
 	if (lock_state.lock_grasp) // GRASP LOCK
 	{
@@ -1012,19 +1052,6 @@ force_feedback Robot_State::ComputeForces(Robot_State ravenArm, haptic_locks loc
 	}
 
 	// ORIENTATION MATCHING
-
-	tf::Quaternion qTemp2;
-	tf::Matrix3x3 hapticCenterOri, hapticDelta;
-	hapticDelta = hapticCenterOri.setEulerYPR(0,M_PI/4,0)*this->Current_Ori;
-	ravenDelta =
-	mTemp2.setEulerYPR(0,M_PI/4,0);
-	tf::Matrix3x3 delta_ori45;
-	delta_ori45 = mTemp2 * curr_ori[id];
-	tfScalar r,p,y;
-	delta_ori.getRPY(r,p,y);
-	torque[id].setValue(-r*KR,-p*KR,-y*KR);
-	if (( normt = torque[id].length()) > MAXT) torque[id] *= MAXT/normt;
-			torque[id] -= KWR * velorientation[id];
 
 	return forces;
 

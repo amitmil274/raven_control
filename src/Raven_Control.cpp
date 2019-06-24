@@ -323,9 +323,9 @@ void* Raven_Control::console_process(void)
 				cout<<CURR_RAVEN_STATE.pos[4]<<","<<CURR_RAVEN_STATE.pos[5]<<")"<<endl;
 
 				cout<<"\tnew HAPTIC Center[LEFT]: X,Y,Z = ("<<CURR_HAPTIC_STATE.position[0]<<",";
-								cout<<CURR_HAPTIC_STATE.position[1]<<","<<CURR_HAPTIC_STATE.position[2]<<")"<<endl;
-								cout<<"\tnew HAPTIC Center[RIGHT]: X,Y,Z = ("<<CURR_HAPTIC_STATE.position[3]<<",";
-								cout<<CURR_HAPTIC_STATE.position[4]<<","<<CURR_HAPTIC_STATE.position[5]<<")"<<endl;
+				cout<<CURR_HAPTIC_STATE.position[1]<<","<<CURR_HAPTIC_STATE.position[2]<<")"<<endl;
+				cout<<"\tnew HAPTIC Center[RIGHT]: X,Y,Z = ("<<CURR_HAPTIC_STATE.position[3]<<",";
+				cout<<CURR_HAPTIC_STATE.position[4]<<","<<CURR_HAPTIC_STATE.position[5]<<")"<<endl;
 				print_menu = true;
 				break;
 			}
@@ -346,40 +346,45 @@ void* Raven_Control::console_process(void)
 			case 'c': // lock haptic grasper
 			{
 				LOCKS.lock_grasp = !LOCKS.lock_grasp;
-//				publish_haptic_commands();
+				//				publish_haptic_commands();
 				break;
 			}
 			case 'd': // update runlevel to start teleop + set new center
 			{
 				LEFT_ARM_RAVEN.set_Center(CURR_RAVEN_STATE.pos,CURR_RAVEN_STATE.grasp);
-								LEFT_ARM_HAPTIC.set_Center(CURR_HAPTIC_STATE.position,CURR_HAPTIC_STATE.gripper);
+				LEFT_ARM_HAPTIC.set_Center(CURR_HAPTIC_STATE.position,CURR_HAPTIC_STATE.gripper);
 
-								RIGHT_ARM_RAVEN.set_Center(CURR_RAVEN_STATE.pos,CURR_RAVEN_STATE.grasp);
-								RIGHT_ARM_HAPTIC.set_Center(CURR_HAPTIC_STATE.position,CURR_HAPTIC_STATE.gripper);
+				RIGHT_ARM_RAVEN.set_Center(CURR_RAVEN_STATE.pos,CURR_RAVEN_STATE.grasp);
+				RIGHT_ARM_HAPTIC.set_Center(CURR_HAPTIC_STATE.position,CURR_HAPTIC_STATE.gripper);
 
-								cout<<"You chose 8 : Set as Circle Center."<<endl;
-								cout<<"\tnew Center[LEFT]: X,Y,Z = ("<<CURR_RAVEN_STATE.pos[0]<<",";
-								cout<<CURR_RAVEN_STATE.pos[1]<<","<<CURR_RAVEN_STATE.pos[2]<<")"<<endl;
-								cout<<"\tnew Center[RIGHT]: X,Y,Z = ("<<CURR_RAVEN_STATE.pos[3]<<",";
-								cout<<CURR_RAVEN_STATE.pos[4]<<","<<CURR_RAVEN_STATE.pos[5]<<")"<<endl;
+				cout<<"You chose 8 : Set as Circle Center."<<endl;
+				cout<<"\tnew Center[LEFT]: X,Y,Z = ("<<CURR_RAVEN_STATE.pos[0]<<",";
+				cout<<CURR_RAVEN_STATE.pos[1]<<","<<CURR_RAVEN_STATE.pos[2]<<")"<<endl;
+				cout<<"\tnew Center[RIGHT]: X,Y,Z = ("<<CURR_RAVEN_STATE.pos[3]<<",";
+				cout<<CURR_RAVEN_STATE.pos[4]<<","<<CURR_RAVEN_STATE.pos[5]<<")"<<endl;
 
-								cout<<"\tnew HAPTIC Center[LEFT]: X,Y,Z = ("<<CURR_HAPTIC_STATE.position[0]<<",";
-												cout<<CURR_HAPTIC_STATE.position[1]<<","<<CURR_HAPTIC_STATE.position[2]<<")"<<endl;
-												cout<<"\tnew HAPTIC Center[RIGHT]: X,Y,Z = ("<<CURR_HAPTIC_STATE.position[3]<<",";
-												cout<<CURR_HAPTIC_STATE.position[4]<<","<<CURR_HAPTIC_STATE.position[5]<<")"<<endl;
-								print_menu = true;
-                                                                update_surgeon_mode = true;
-								current_surgeon_mode = 1;
-								LOCKS.lock_grasp = LOCKS.lock_position = LOCKS.lock_orientation = false;
+				cout<<"\tnew HAPTIC Center[LEFT]: X,Y,Z = ("<<CURR_HAPTIC_STATE.position[0]<<",";
+				cout<<CURR_HAPTIC_STATE.position[1]<<","<<CURR_HAPTIC_STATE.position[2]<<")"<<endl;
+				cout<<"\tnew HAPTIC Center[RIGHT]: X,Y,Z = ("<<CURR_HAPTIC_STATE.position[3]<<",";
+				cout<<CURR_HAPTIC_STATE.position[4]<<","<<CURR_HAPTIC_STATE.position[5]<<")"<<endl;
+				print_menu = true;
+				update_surgeon_mode = true;
+				current_surgeon_mode = 1;
+				LOCKS.lock_grasp = LOCKS.lock_position = LOCKS.lock_orientation = false;
 				break;
 			}
 			case 'u': // update runlevel to stop teleop
 			{
 
 				LOCKS.lock_grasp = LOCKS.lock_position = LOCKS.lock_orientation = true;;
-                                update_surgeon_mode = true;
-                                current_surgeon_mode = 0;
-//				publish_haptic_commands();
+				update_surgeon_mode = true;
+				current_surgeon_mode = 0;
+				//				publish_haptic_commands();
+				break;
+			}
+			case 'h':
+			{
+				HAPTIC_FEEDBACK = !HAPTIC_FEEDBACK;
 				break;
 			}
 			/*
@@ -517,10 +522,12 @@ void* Raven_Control::ros_process(void)
 				GRASP_INCR[LEFT_ARM] = RIGHT_ARM_RAVEN.ComputeGrasp(LEFT_ARM_HAPTIC);
 				//if (orientation _matching)
 				//{
-					//CURR_HAPTIC_COMMANDS.torque = computeOrientationMatch();
+				//CURR_HAPTIC_COMMANDS.torque = computeOrientationMatch();
 
 				//}
 
+				// SWITCH BETWEEN RIGHT AND LEFT ARM BECAUSE SIGMA IS THE OPPOSITE WAY ...
+				//TODO switch sigma code to the correct way
 				FORCES[LEFT_ARM] = LEFT_ARM_HAPTIC.ComputeForces(LEFT_ARM_RAVEN,LOCKS);
 				FORCES[RIGHT_ARM] = RIGHT_ARM_HAPTIC.ComputeForces(RIGHT_ARM_RAVEN,LOCKS);
 				publish_raven_control();
@@ -530,7 +537,7 @@ void* Raven_Control::ros_process(void)
 			}
 
 			// (3) publish new command (send it out)
-//			publish_raven_control();
+			//			publish_raven_control();
 
 		}
 
@@ -576,14 +583,14 @@ void Raven_Control::publish_raven_control()
 	msg_raven_control.grasp[0] = GRASP_INCR[0];
 	msg_raven_control.grasp[1] = GRASP_INCR[1];
 
-//cout<<"I am here"<<endl;
+	//cout<<"I am here"<<endl;
 	// (2) send new command
 	//raven_publisher.publish(msg_raven_control);
-       //msg_raven_control.surgeon_mode= CURR_RAVEN_STATE.surgeon_mode;
-        if (update_surgeon_mode)
+	//msg_raven_control.surgeon_mode= CURR_RAVEN_STATE.surgeon_mode;
+	if (update_surgeon_mode)
 	{
-                update_surgeon_mode = false;
-                msg_raven_control.surgeon_mode = current_surgeon_mode;
+		update_surgeon_mode = false;
+		msg_raven_control.surgeon_mode = current_surgeon_mode;
 	}
 	raven_publisher_tester.publish(msg_raven_control);
 
@@ -592,17 +599,41 @@ void Raven_Control::publish_raven_control()
 	msg_haptic_commands.lock_orientation = LOCKS.lock_orientation;
 	msg_haptic_commands.lock_position = LOCKS.lock_position;
 	int i = 0;
-	for (int m = 0; m++;m<2)
+	if (HAPTIC_FEEDBACK)
 	{
-		msg_haptic_commands.grip_force[m] = FORCES[m].force_grip;
-		for (int n = 0; n++;n<2)
-		{
-			msg_haptic_commands.force[i] = FORCES[m].force_trans[n];
-			msg_haptic_commands.torque[i] = FORCES[m].force_torque[n];
-			i++;
-		}
-	}
+		msg_haptic_commands.force[0] = FORCES[1].force_trans[0];
+		msg_haptic_commands.force[1] = FORCES[1].force_trans[1];
+		msg_haptic_commands.force[2] = FORCES[1].force_trans[2];
+		msg_haptic_commands.force[3] = FORCES[0].force_trans[0];
+		msg_haptic_commands.force[4] = FORCES[0].force_trans[1];
+		msg_haptic_commands.force[5] = FORCES[0].force_trans[2];
+		msg_haptic_commands.torque[0] = FORCES[1].force_torque[0];
+		msg_haptic_commands.torque[1] = FORCES[1].force_torque[1];
+		msg_haptic_commands.torque[2] = FORCES[1].force_torque[2];
+		msg_haptic_commands.torque[3] = FORCES[0].force_torque[0];
+		msg_haptic_commands.torque[4] = FORCES[0].force_torque[1];
+		msg_haptic_commands.torque[5] = FORCES[0].force_torque[2];
+		msg_haptic_commands.grip_force[0] = FORCES[1].force_grip;
+		msg_haptic_commands.grip_force[1] = FORCES[0].force_grip;
 
+	}
+	else
+	{
+		msg_haptic_commands.force[0] = 0;
+			msg_haptic_commands.force[1] = 0;
+			msg_haptic_commands.force[2] = 0;
+			msg_haptic_commands.force[3] = 0;
+			msg_haptic_commands.force[4] = 0;
+			msg_haptic_commands.force[5] = 0;
+			msg_haptic_commands.torque[0] = 0;
+			msg_haptic_commands.torque[1] = 0;
+			msg_haptic_commands.torque[2] = 0;
+			msg_haptic_commands.torque[3] = 0;
+			msg_haptic_commands.torque[4] = 0;
+			msg_haptic_commands.torque[5] = 0;
+			msg_haptic_commands.grip_force[0] = 0;
+			msg_haptic_commands.grip_force[1] = 0;
+	}
 
 	haptic_publisher.publish(msg_haptic_commands);
 
@@ -619,7 +650,7 @@ void Raven_Control::publish_haptic_commands()
 
 	// (1) wrap up the new command
 
-//cout<<"I am here"<<endl;
+	//cout<<"I am here"<<endl;
 	// (2) send new command
 	//raven_publisher.publish(msg_raven_control);
 
@@ -701,50 +732,7 @@ void Raven_Control::callback_haptic_state(haptic_device msg)
 	RECEIVED_FIRST = true;
 }
 
-// pointer version of callback function (not working for now)
-//..
 
-/**
- *	\fn void autoRavenStateCallback(boost::shared_ptr< ::raven_state_<ContainerAllocator> const> msg)
- *
- *	\brief This function is automatically called whenever someone publish to raven_state topic
- *
- * 	\param boost::shared_ptr< ::raven_state_<ContainerAllocator> const
- *
- *	\return void
- */
-/*
-void autoRavenStateCallback(boost::shared_ptr< ::raven_state_<ContainerAllocator> const> msg) 
-{
-	// (1) save the updated raven_state 
-	CURR_RAVEN_STATE.runlevel = msg->runlevel;
-	CURR_RAVEN_STATE.sublevel = msg->sublevel;
-	CURR_RAVEN_STATE.last_seq = msg->last_seq;
-	CURR_RAVEN_STATE.dt = msg->dt;
-
-	for(int i=0; i<2; i++)
-	{
-		CURR_RAVEN_STATE.type[i] = msg->type[i];
-		CURR_RAVEN_STATE.grasp_d[i] = msg->grasp_d[i];
-	}
-
-	for(int i=0; i<6; i++)
-	{
-		CURR_RAVEN_STATE.pos[i] = msg->pos[i];
-		CURR_RAVEN_STATE.pos_d[i] = msg->pos_d[i];
-	}
-
-
-	for(int i=0; i<18; i++)
-	{
-		CURR_RAVEN_STATE.ori[i] = msg->ori[i];
-		CURR_RAVEN_STATE.ori_d[i] = msg->ori_d[i];
-	}
-
-	// (2) update recieved data count
-	SUB_COUNT ++;
-}
- */
 
 
 
@@ -759,43 +747,6 @@ void autoRavenStateCallback(boost::shared_ptr< ::raven_state_<ContainerAllocator
  */
 void Raven_Control::output_STATUS()
 {
-	//	tfScalar R = LEFT_PATH.get_Radius(); 		// in cm
-	//	tfScalar dR = LEFT_PATH.get_Radius_Range();	// in cm
-	//	tfScalar SP = LEFT_PATH.get_Speed(); 		// in cm/sec
-	//	tfScalar k = LEFT_PATH.get_K();
-	//
-	//        cout<<"current AutoCircle status :"<<endl;
-	//
-	//	switch(BASE_PLANE)
-	//	{
-	//		case YZ_PLANE:
-	//			cout<<"\tBASE   = Y-Z plane";
-	//		break;
-	//		case XZ_PLANE:
-	//			cout<<"\tBASE   = X-Z plane";
-	//		break;
-	//		case XY_PLANE:
-	//			cout<<"\tBASE   = X-Y plane";
-	//		break;
-	//	}
-	//
-	//	if(DIRECTION > 0)
-	//		cout<<"\t(Counter-Clockwise circle)"<<endl;
-	//	else
-	//		cout<<"\t(Clockwise circle)"<<endl;
-	//
-	//	cout<<"\tRADIUS = "<<R<<"~"<<(R+dR)<<" cm \t(level "<<RADIUS<<")"<<endl;
-	//	cout<<"\tSPEED  = "<<SP<<" cm/sec\t(level "<<SPEED<<")"<<endl;
-	//	cout<<"\tK      = "<<k<<" \t(Regulating Term: 0~1)"<<endl<<endl;
-	//
-	//	/*
-	//	// [DANGER]: for modification parameter tuning only
-	//	tfScalar modi_scale = LEFT_PATH.get_Modi_Scale();
-	//	tfScalar modi_speed_pow = LEFT_PATH.get_Modi_Speed_Pow();
-	//	tfScalar modi_dista_pow = LEFT_PATH.get_Modi_Dista_Pow();
-
-	//	cout<<"\tscale="<<modi_scale<<" speedPow="<<modi_speed_pow<<" disPow="<<modi_dista_pow<<endl;
-	//	*/
 
 	output_PATHinfo();
 	output_PUBinfo();
@@ -817,20 +768,9 @@ void Raven_Control::output_PATHinfo()
 {
 	cout<<"current PathPlanner status : "<<endl;
 
-	//LEFT_PATH.show_delPos();
-	//RIGHT_PATH.show_delPos(); 	//(RIGHT_ARM unused right now)
-
 	RIGHT_ARM_RAVEN.show_Center();
 	LEFT_ARM_RAVEN.show_Center();
-	RIGHT_ARM_HAPTIC.show_Center();
-	LEFT_ARM_HAPTIC.show_Center();
-	//RIGHT_PATH.show_Center(); 	//(RIGHT_ARM unused right now)
 
-	//LEFT_PATH.show_Distance();
-	//RIGHT_PATH.show_Distance(); 	//(RIGHT_ARM unused right now)
-
-	//LEFT_PATH.show_PathState();
-	//RIGHT_PATH.show_PathState(); 	//(RIGHT_ARM unused right now)
 	cout<<endl<<endl;
 
 }
@@ -936,26 +876,6 @@ void Raven_Control::output_SUBinfo()
 	}
 
 	cout<<endl;
-
-	/* 
-	// raven desired rotation (not important)
-	cout<<"\t"<<"ori_d[LEFT_ARM] = \t\tori_d[RIGHT_ARM] = "<<endl;
-	for(int orii=0; orii<3; orii++)
-	{
-		cout<<"\t\t";
-		for(int orij=0; orij<3; orij++)
-		{
-			cout<<CURR_RAVEN_STATE.ori_d[LEFT_ARM*9+orii*3+orij]<<"\t";
-		}
-		cout<<"\t";
-		for(int orij=0; orij<3; orij++)
-		{
-			cout<<CURR_RAVEN_STATE.ori_d[RIGHT_ARM*9+orii*3+orij]<<"\t";
-		}
-		cout<<endl;
-	}
-	cout<<endl
-	 */
 
 	cout<<endl;
 }

@@ -29,6 +29,7 @@ class Raven_Control
 		bool RECEIVED_FIRST;
 		bool PAUSE;
 		bool update_surgeon_mode = false;
+		bool HAPTIC_FEEDBACK = false;
 
 		pthread_t console_thread;
 		pthread_t ros_thread;

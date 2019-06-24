@@ -61,7 +61,7 @@ using namespace raven_control;
 #define KP    100.0
 #define KVP    10.0
 #define MAXF    4.0
-#define KR      0.3
+#define KR      0.1
 #define KWR     0.02
 #define MAXT    0.1
 #define KG    100.0
@@ -106,8 +106,10 @@ class Robot_State
 		tf::Vector3 Velocity_Pos;
 
 		// ORIENTATION
-		tf::Quaternion Current_Ori;	// current raven rotation
-		tf::Quaternion Previous_Ori;	// current raven rotation
+		tf::Quaternion Current_Ori;	// current raven rotation quaternion
+		tf::Matrix3x3 Current_Ori_mat; // current orientation matrix
+		tf::Quaternion Previous_Ori;	// previous raven rotation quaternion
+		tf::Matrix3x3 Previous_Ori_mat; // previous orientation matrix
 		tf::Vector3 Velocity_Orientation;
 
 		// FORCE FEEDBACKS
