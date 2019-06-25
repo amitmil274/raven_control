@@ -49,7 +49,9 @@ class Raven_Control
 		force_feedback FORCES[2];
 		haptic_locks LOCKS;
 		
+		bool LEFT_ARM_STATUS;
 		Robot_State LEFT_ARM_RAVEN;
+		bool RIGHT_ARM_STATUS;
 		Robot_State RIGHT_ARM_RAVEN;
 
 		Robot_State LEFT_ARM_HAPTIC;

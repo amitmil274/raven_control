@@ -18,7 +18,7 @@ Robot_State::Robot_State()
 	X_AXIS.setValue(1,0,0);
 	Y_AXIS.setValue(0,1,0);
 	Z_AXIS.setValue(0,0,1);
-
+	DISABLED = false;
 	Current_Pos.setValue(0,0,0);
 	Previous_Pos = Current_Pos;
 	tf::Quaternion tempQ(0,0,0,1);
@@ -174,14 +174,15 @@ bool Robot_State::set_Center(boost::array<int, 6> center,boost::array<float, 2> 
 	tfScalar X,Y,Z, Grasp;
 
 	// (1) store center postion value
-	if(ArmType == LEFT_ARM)
+	if(this->ArmType == LEFT_ARM)
 	{
 		X = center[0];
 		Y = center[1];
 		Z = center[2];
 		Grasp = center_grasp[0];
+		//	cout<<Grasp<<endl;
 	}
-	else if(ArmType == RIGHT_ARM)
+	else if(this->ArmType == RIGHT_ARM)
 	{
 		X = center[3];
 		Y = center[4];
@@ -192,9 +193,10 @@ bool Robot_State::set_Center(boost::array<int, 6> center,boost::array<float, 2> 
 	{
 		return false;
 	}
+	cout<< center_grasp[0]<<"\t"<<center_grasp[1]<<endl;
 
-	Center.setValue(X,Y,Z);
-	CenterGrasp = Grasp;
+	this->Center.setValue(X,Y,Z);
+	this->CenterGrasp = Grasp;
 	// (2) update distance between current pos and center pos 
 	Distance = DistanceOf(Center,Current_Pos); 
 	checkPathState();
@@ -231,7 +233,6 @@ bool Robot_State::set_Center(boost::array<float, 6> center,boost::array<float, 2
 	// (2) update distance between current pos and center pos
 	Distance = DistanceOf(Center,Current_Pos);
 	checkPathState();
-
 	return true;
 }
 
@@ -903,110 +904,108 @@ tf::Transform Robot_State::ComputeCircleTrajectory()
 
 	return TF_INCR;
 }
-tf::Transform Robot_State::ComputeTrajectory(Robot_State hapticDev)
+tf::Transform Robot_State::ComputeTeleoperation(Robot_State hapticDev)
 {
 	tf::Transform TF_INCR;
 
 	pthread_mutex_lock(&data1Mutex);
-	// (1) set position increment (only Y-Z plane)
-	//	switch(PathState)
-	//	{
-	//		case MOVETO_CIRCLE: // finding orbit case
-	//
-	//			if(Distance == 0) // exactly at center
-	//			{
-	//				if(Base_Plane == XZ_PLANE)
-	//					Delta_Pos.setValue(Speed,0,0);
-	//				else
-	//					Delta_Pos.setValue(0,Speed,0);
-	//			}
-	//			else // either inside of outside circle
-	//			{
-	//				tf::Vector3 Delta_Pos1 = TuneRadiusMotion();  // normal direction
-	//				tf::Vector3 Delta_Pos2 = AutoCircleMotion4(); // tangent direction
-	//
-	//				//..
-	//				K = Kp * tfPow(Error,Modi_Dista_Pow);
-	//
-	//				K = (K>1) ? 1 : K; // K should not be larger than 1
-	//
-	//				Delta_Pos = (K)*Delta_Pos1 + (1-K)*Delta_Pos2;
-	//
-	//				Delta_Pos = Delta_Pos.normalized()*Speed;  //..
-	//			}
-	//			break;
-	//
-	//		case AROUND_CIRCLE:  // in orbit case
-	//
-	//			Delta_Pos = AutoCircleMotion4();
-	//			break;
-	//
-	//		default:
-	//			ROS_ERROR("Undefined PathState. We can only send NULL Trajectory!");
-	//			Delta_Pos.setValue(0,0,0);
-	//			break;
-	//	}
 
 	//Delta_Pos = Scale*(hapticDev.Current_Pos-hapticDev.Center)-(this->Current_Pos-this->Center)*0.000001;
+	if (!this->DISABLED)
+	{
+		// (2) no rotation increment
+		tfScalar  W = 1;
+		tfScalar QX = 0;
+		tfScalar QY = 0;
+		tfScalar QZ = 0;
+		tf::Quaternion Delta_Ori(QX,QY,QZ,W);
+		// diff * q1 = q2  --->  diff = q2 * inverse(q1)
+		tf::Quaternion tempQprev = hapticDev.Previous_Ori;
+		tf::Quaternion tempQcurr = hapticDev.Current_Ori;
+		//tempQ = tempQ.normalized();
+		//urrent_Ori = Current_Ori.normalized();
+		tf::Quaternion extra_rotation(0,0,0,1);
+		if(hapticDev.ArmType == RIGHT_ARM)
+			extra_rotation = tf::Quaternion( 0.5, -0.5, 0.5, -0.5 );
+		else
+			extra_rotation = tf::Quaternion( -0.5, 0.5, 0.5, -0.5 );
 
+		tf::Vector3 u(extra_rotation.x(), extra_rotation.y(), extra_rotation.z());
+		// Extract the scalar part of the quaternion
+		float s = extra_rotation.w();
+		//Delta_Pos = extra_rotation.Delta_Pos.rotate()
+		// Do the math
+		Delta_Pos = Scale*(hapticDev.Center-hapticDev.Current_Pos)*500000;
+		Delta_Pos = 2.0f * u.dot(Delta_Pos) * u
+				+ (s*s - u.dot(u)) * Delta_Pos
+				+ 2.0f * s * u.cross(Delta_Pos);
+		//	if(hapticDev.ArmType != RIGHT_ARM)
+		//	{
+		//		Delta_Pos.setX(-Delta_Pos.x());
+		//		Delta_Pos.setY(-Delta_Pos.y());
+		//	}
+		Delta_Pos = (this->Center)-Delta_Pos;
+		//	if(hapticDev.ArmType != RIGHT_ARM)
+		//cout<<Delta_Pos.x()<<"\t"<<Delta_Pos.y()<<"\t"<<Delta_Pos.z()<<"\t"<<endl;
+		tempQcurr=tempQcurr*extra_rotation;
+		tempQprev = tempQprev.inverse();
+		Delta_Ori = tempQprev*tempQcurr;
+		// (3) add increment to return variable
+		TF_INCR.setOrigin(Delta_Pos);
+		TF_INCR.setRotation(Delta_Ori);
 
-	// (2) no rotation increment
-	tfScalar  W = 1;
-	tfScalar QX = 0;
-	tfScalar QY = 0;
-	tfScalar QZ = 0;
-	tf::Quaternion Delta_Ori(QX,QY,QZ,W);
-	// diff * q1 = q2  --->  diff = q2 * inverse(q1)
-	tf::Quaternion tempQprev = hapticDev.Previous_Ori;
-	tf::Quaternion tempQcurr = hapticDev.Current_Ori;
-	//tempQ = tempQ.normalized();
-	//urrent_Ori = Current_Ori.normalized();
-	tf::Quaternion extra_rotation(0,0,0,1);
-	if(hapticDev.ArmType == RIGHT_ARM)
-		extra_rotation = tf::Quaternion( 0.5, -0.5, 0.5, -0.5 );
+	}
 	else
-		extra_rotation = tf::Quaternion( -0.5, 0.5, 0.5, -0.5 );
-
-	tf::Vector3 u(extra_rotation.x(), extra_rotation.y(), extra_rotation.z());
-	// Extract the scalar part of the quaternion
-	float s = extra_rotation.w();
-	//Delta_Pos = extra_rotation.Delta_Pos.rotate()
-	// Do the math
-	Delta_Pos = Scale*(hapticDev.Center-hapticDev.Current_Pos)*500000;
-	Delta_Pos = 2.0f * u.dot(Delta_Pos) * u
-			+ (s*s - u.dot(u)) * Delta_Pos
-			+ 2.0f * s * u.cross(Delta_Pos);
-//	if(hapticDev.ArmType != RIGHT_ARM)
-//	{
-//		Delta_Pos.setX(-Delta_Pos.x());
-//		Delta_Pos.setY(-Delta_Pos.y());
-//	}
-	Delta_Pos = (this->Center)-Delta_Pos;
-//	if(hapticDev.ArmType != RIGHT_ARM)
-	//cout<<Delta_Pos.x()<<"\t"<<Delta_Pos.y()<<"\t"<<Delta_Pos.z()<<"\t"<<endl;
-	tempQcurr=tempQcurr*extra_rotation;
-	tempQprev = tempQprev.inverse();
-	Delta_Ori = tempQprev*tempQcurr;
-	// (3) add increment to return variable
-	TF_INCR.setOrigin(Delta_Pos);
-	TF_INCR.setRotation(Delta_Ori);
+	{
+		TF_INCR.setOrigin(this->Center);
+		// (2) no rotation increment
+		tfScalar  W = 1;
+		tfScalar QX = 0;
+		tfScalar QY = 0;
+		tfScalar QZ = 0;
+		tf::Quaternion Delta_Ori(QX,QY,QZ,W);
+		TF_INCR.setRotation(Delta_Ori);
+	}
 	pthread_mutex_unlock(&data1Mutex);
-
 	return TF_INCR;
+
+
 }
 
+
+void Robot_State::set_Disabled(bool disabled_status)
+{
+	this->DISABLED = disabled_status;
+}
+
+/**
+ * Compute the Grasp Increase
+ * @param hapticDev
+ * @return
+ */
 tfScalar Robot_State::ComputeGrasp(Robot_State hapticDev)
 {
 	tfScalar GRASP_INCR;
 
 	pthread_mutex_lock(&data2Mutex);
+	if (!this->DISABLED)
+		GRASP_INCR = ((this->CenterGrasp)-(hapticDev.CenterGrasp-hapticDev.Current_Grasp)*GraspScale)*1000;//*(hapticDev.Current_Grasp)*1000*GraspScale;
+	else
+		GRASP_INCR = (this->CenterGrasp)*1000;
 
-	GRASP_INCR = ((this->CenterGrasp)-(hapticDev.CenterGrasp-hapticDev.Current_Grasp)*GraspScale)*1000;//*(hapticDev.Current_Grasp)*1000*GraspScale;
+	//cout<<this->CenterGrasp<<"\t"<<GRASP_INCR<<endl;
+
 
 	pthread_mutex_unlock(&data2Mutex);
-
 	return GRASP_INCR;
 }
+
+/**
+ *
+ * @param ravenArm
+ * @param lock_state
+ * @return
+ */
 force_feedback Robot_State::ComputeForces(Robot_State ravenArm, haptic_locks lock_state)
 {
 	force_feedback forces;
@@ -1476,6 +1475,10 @@ tf::Vector3 Robot_State::TuneRadiusMotion()
 	return del_Vector;
 }
 
+
+bool Robot_State::get_Disabled() {
+	return this->DISABLED;
+}
 /*
 // [DANGER]: for modification parameter tuning only
 

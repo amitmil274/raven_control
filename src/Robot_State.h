@@ -15,7 +15,7 @@
 #include <pthread.h>
 #include <termios.h>
 #include <queue>
-#include "raven_automove.h"
+#include "raven_control/raven_automove.h"
 #include "raven_state.h"
 #include "sigma_ros/haptic_device.h"
 #include "sigma_ros/haptic_commands.h"
@@ -125,7 +125,7 @@ class Robot_State
 		tfScalar Radius;		// in mm
 		tfScalar Speed;
 		tfScalar Scale = 0.5;
-		tfScalar GraspScale = 3;
+		tfScalar GraspScale = 5;
 		tfScalar Distance;		// the distance between current pos and center
 		tfScalar Error;			// the difference between radius and distance
 		PATH_STATE PathState;
@@ -141,6 +141,7 @@ class Robot_State
 		int ArmType;
 		int DeviceType;
 		bool FIRST_SEND;
+		bool DISABLED;
 		tfScalar last_y,last_z;
 		tfScalar K;
 		tfScalar Kp;
@@ -157,6 +158,8 @@ class Robot_State
 		bool set_Radius(int);
 		bool set_Speed(int);
 		bool set_Scale(int);
+		void set_Disabled(bool);
+		bool get_Disabled();
 
 		bool set_Direction(int);
 		bool set_BasePlane(int);
@@ -194,7 +197,7 @@ class Robot_State
 
 		tfScalar DistanceOf(tf::Vector3,tf::Vector3);
 		tf::Transform ComputeCircleTrajectory();
-		tf::Transform ComputeTrajectory(Robot_State);
+		tf::Transform ComputeTeleoperation(Robot_State);
 		force_feedback ComputeForces(Robot_State, haptic_locks);
 		tf::Transform ComputeNullTrajectory();
 		tfScalar ComputeGrasp(Robot_State);

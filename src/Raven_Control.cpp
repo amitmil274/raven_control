@@ -387,6 +387,20 @@ void* Raven_Control::console_process(void)
 				HAPTIC_FEEDBACK = !HAPTIC_FEEDBACK;
 				break;
 			}
+			case '[':
+						{
+							LEFT_ARM_STATUS = !LEFT_ARM_RAVEN.get_Disabled();
+							LEFT_ARM_RAVEN.set_Disabled(LEFT_ARM_STATUS);
+							ROS_INFO("LEFT ARM IS %s", LEFT_ARM_STATUS ? "DISABLED" : "ENABLED");
+							break;
+						}
+			case ']':
+									{
+										RIGHT_ARM_STATUS = !RIGHT_ARM_RAVEN.get_Disabled();
+										RIGHT_ARM_RAVEN.set_Disabled(RIGHT_ARM_STATUS);
+										ROS_INFO("RIGHT ARM IS %s", RIGHT_ARM_STATUS ? "DISABLED" : "ENABLED");
+										break;
+									}
 			/*
 				// [DANGER]: for modification parameter tuning only
 				case 'a':
@@ -496,15 +510,15 @@ void* Raven_Control::ros_process(void)
 			{
 				// stop raven
 
-				TF_INCR[LEFT_ARM] = LEFT_ARM_RAVEN.ComputeTrajectory(LEFT_ARM_HAPTIC);
-				TF_INCR[RIGHT_ARM] = RIGHT_ARM_RAVEN.ComputeTrajectory(RIGHT_ARM_HAPTIC);
+				TF_INCR[LEFT_ARM] = LEFT_ARM_RAVEN.ComputeTeleoperation(LEFT_ARM_HAPTIC);
+				TF_INCR[RIGHT_ARM] = RIGHT_ARM_RAVEN.ComputeTeleoperation(RIGHT_ARM_HAPTIC);
 				GRASP_INCR[RIGHT_ARM] = RIGHT_ARM_RAVEN.ComputeGrasp(RIGHT_ARM_HAPTIC);
 				GRASP_INCR[LEFT_ARM] = RIGHT_ARM_RAVEN.ComputeGrasp(LEFT_ARM_HAPTIC);
 				publish_raven_control();
-				TF_INCR[LEFT_ARM] = LEFT_ARM_RAVEN.ComputeNullTrajectory(); 
-				TF_INCR[RIGHT_ARM] = RIGHT_ARM_RAVEN.ComputeNullTrajectory();
-				GRASP_INCR[RIGHT_ARM] = 0;
-				GRASP_INCR[LEFT_ARM] = 0;
+				//TF_INCR[LEFT_ARM] = LEFT_ARM_RAVEN.ComputeNullTrajectory();
+				//TF_INCR[RIGHT_ARM] = RIGHT_ARM_RAVEN.ComputeNullTrajectory();
+				//GRASP_INCR[RIGHT_ARM] = 0;
+				//GRASP_INCR[LEFT_ARM] = 0;
 
 
 			}
@@ -516,10 +530,10 @@ void* Raven_Control::ros_process(void)
 				//TF_INCR[LEFT_ARM] = LEFT_PATH.ComputeNullTrajectory(); 
 				//TF_INCR[LEFT_ARM] = LEFT_ARM_RAVEN.ComputeCircleTrajectory();
 				//TF_INCR[RIGHT_ARM] = RIGHT_ARM_RAVEN.ComputeCircleTrajectory();
-				TF_INCR[LEFT_ARM] = LEFT_ARM_RAVEN.ComputeTrajectory(LEFT_ARM_HAPTIC);
-				TF_INCR[RIGHT_ARM] = RIGHT_ARM_RAVEN.ComputeTrajectory(RIGHT_ARM_HAPTIC);
+				TF_INCR[LEFT_ARM] = LEFT_ARM_RAVEN.ComputeTeleoperation(LEFT_ARM_HAPTIC);
+				TF_INCR[RIGHT_ARM] = RIGHT_ARM_RAVEN.ComputeTeleoperation(RIGHT_ARM_HAPTIC);
 				GRASP_INCR[RIGHT_ARM] = RIGHT_ARM_RAVEN.ComputeGrasp(RIGHT_ARM_HAPTIC);
-				GRASP_INCR[LEFT_ARM] = RIGHT_ARM_RAVEN.ComputeGrasp(LEFT_ARM_HAPTIC);
+				GRASP_INCR[LEFT_ARM] = LEFT_ARM_RAVEN.ComputeGrasp(LEFT_ARM_HAPTIC);
 				//if (orientation _matching)
 				//{
 				//CURR_HAPTIC_COMMANDS.torque = computeOrientationMatch();
