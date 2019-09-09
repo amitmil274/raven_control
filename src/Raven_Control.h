@@ -4,6 +4,7 @@
 #include "/usr/include/dhdc.h"				//AMIT
 #include "/usr/include/drdc.h"				//AMIT
 #include "Robot_State.h"
+#include "ati_fsensor/ati_data.h"
 
 // RUN LEVELS
 #define RL_E_STOP 0
@@ -30,7 +31,8 @@ class Raven_Control
 		bool PAUSE;
 		bool update_surgeon_mode = false;
 		bool HAPTIC_FEEDBACK = false;
-
+		bool GRIP_FORCE_FEEDBACK = false;
+		bool TRANS_FORCE_FEEDBACK = false;
 		pthread_t console_thread;
 		pthread_t ros_thread;
 
@@ -41,9 +43,11 @@ class Raven_Control
 
 		ros::Subscriber raven_subscriber;
 		ros::Subscriber haptic_subscriber;
+		ros::Subscriber ati_subscriber;
 		raven_state CURR_RAVEN_STATE;
 		haptic_device CURR_HAPTIC_STATE;
 		haptic_commands CURR_HAPTIC_COMMANDS;
+		ati_fsensor::ati_data CURR_FORCE_SENSOR;
 		tf::Transform TF_INCR[2];
 		tfScalar GRASP_INCR[2];
 		force_feedback FORCES[2];
@@ -85,6 +89,7 @@ class Raven_Control
 		void publish_haptic_commands();
 		void callback_raven_state(raven_state); // ROS subscribe
 		void callback_haptic_state(haptic_device); // ROS subscribe
+		void callback_ati_data(ati_fsensor::ati_data); // ROS subscribe
 
 		void output_STATUS();		// show ROS and raven state
 		void output_PATHinfo();

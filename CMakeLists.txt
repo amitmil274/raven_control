@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   message_generation
+  ati_fsensor
 )
 
 ## System dependencies are found with CMake's conventions
@@ -54,7 +55,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 #   Message1.msg
 #   Message2.msg
 # )
-add_message_files(FILES raven_automove.msg raven_state.msg )
+add_message_files(FILES raven_automove.msg raven_state.msg)
 
 ## Generate services in the 'srv' folder
 # add_service_files(

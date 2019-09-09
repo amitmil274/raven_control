@@ -1035,7 +1035,13 @@ force_feedback Robot_State::ComputeForces(Robot_State ravenArm, haptic_locks loc
 		tf::Quaternion qTemp2;
 		tf::Matrix3x3 hapticCenterOri, hapticDelta;
 		hapticCenterOri.setIdentity();
-		hapticCenterOri.setEulerYPR(0,-M_PI/4,0);
+		//hapticCenterOri.setEulerYPR(0,-M_PI/4,0);
+		//hapticCenterOri.setEulerYPR(6*M_PI/180,-32.5679858*M_PI/180,-12.5718119*M_PI/180);
+		hapticCenterOri.setRPY(16.8754*M_PI/180,-45.2293*M_PI/180,(-156.2177+180)*M_PI/180);
+		// 16.8754  -45.2293 -156.2177
+
+		//hapticCenterOri.setRPY()
+
 		hapticDelta =this->Current_Ori_mat* hapticCenterOri.inverse();
 		tfScalar r,p,y;
 		hapticDelta.getRPY(r,p,y);

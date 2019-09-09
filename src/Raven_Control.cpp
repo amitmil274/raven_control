@@ -92,7 +92,7 @@ bool Raven_Control::init_ros(int argc, char** argv)
 	haptic_publisher = n.advertise<haptic_commands>("haptic_commands", 1);
 	raven_subscriber   = n.subscribe("ravenstate",1,&Raven_Control::callback_raven_state,this);
 	haptic_subscriber = n.subscribe("haptic_msg",1,&Raven_Control::callback_haptic_state,this);
-
+	ati_subscriber = n.subscribe("ati_force_sensor",1,&Raven_Control::callback_ati_data,this);
 	//HapticDevice_publisher = n.advertise<raven_automove>("haptic_device", 1);
 	return true;
 }
@@ -132,17 +132,17 @@ bool Raven_Control::menu_words(bool print_menu)
 	if(print_menu)
 	{
 		cout<<endl;
-		cout<<"Auto Circle Generator Selection Menu:"<<endl;
+		cout<<"Raven teleop Selection Menu:"<<endl;
 		cout<<"----------------------------------------------------"<<endl;
-		cout<<"\t'1' : Increase Circle Radius"<<endl;
-		cout<<"\t'2' : Decrease Circle Radius"<<endl;
-		cout<<"\t'3' : Increase Raven Moving Speed"<<endl;
-		cout<<"\t'4' : Decrease Raven Moving Speed"<<endl;
-		cout<<"\t'5' : Toggle circling direction"<<endl;
-		cout<<"\t'6' : Toggle pause/resume "<<endl;
-		cout<<"\t'7' : Toggle console messages"<<endl;
-		cout<<"\t'8' : Set as Circle Center."<<endl;
-		cout<<"\t'9' : Change Circle Base Plane."<<endl;
+		cout<<"\t'3' : up scale motion"<<endl;
+		cout<<"\t'4' : down scale motion"<<endl;
+		cout<<"\t'7' : show status"<<endl;
+		cout<<"\t'8' : set haptic and raven center"<<endl;
+		cout<<"\t'z' : position lock/unlock"<<endl;
+		cout<<"\t'x' : orientation lock/unlock"<<endl;
+		cout<<"\t'c' : gripper lock/unlock"<<endl;
+		cout<<"\t'd' : start teleop"<<endl;
+		cout<<"\t'u' : stop teleop"<<endl;
 		cout<<"\t'^C': Quit"<<endl<<endl;
 	}
 	return false;
@@ -322,17 +322,17 @@ void* Raven_Control::console_process(void)
 				cout<<"\tnew Center[RIGHT]: X,Y,Z = ("<<CURR_RAVEN_STATE.pos[3]<<",";
 				cout<<CURR_RAVEN_STATE.pos[4]<<","<<CURR_RAVEN_STATE.pos[5]<<")"<<endl;
 
-				cout<<"\tnew HAPTIC Center[LEFT]: X,Y,Z = ("<<CURR_HAPTIC_STATE.position[0]<<",";
-				cout<<CURR_HAPTIC_STATE.position[1]<<","<<CURR_HAPTIC_STATE.position[2]<<")"<<endl;
-				cout<<"\tnew HAPTIC Center[RIGHT]: X,Y,Z = ("<<CURR_HAPTIC_STATE.position[3]<<",";
+				cout<<"\tnew HAPTIC Center[LEFT]: X,Y,Z = ("<<CURR_HAPTIC_STATE.position[3]<<",";
 				cout<<CURR_HAPTIC_STATE.position[4]<<","<<CURR_HAPTIC_STATE.position[5]<<")"<<endl;
+				cout<<"\tnew HAPTIC Center[RIGHT]: X,Y,Z = ("<<CURR_HAPTIC_STATE.position[0]<<",";
+				cout<<CURR_HAPTIC_STATE.position[1]<<","<<CURR_HAPTIC_STATE.position[2]<<")"<<endl;
 				print_menu = true;
 				break;
 			}
 			case 'z': // lock haptic position
 			{
 				LOCKS.lock_position = !LOCKS.lock_position;
-
+				cout<<LOCKS.lock_position<<endl;
 				//publish_haptic_commands();
 				break;
 			}
@@ -346,6 +346,8 @@ void* Raven_Control::console_process(void)
 			case 'c': // lock haptic grasper
 			{
 				LOCKS.lock_grasp = !LOCKS.lock_grasp;
+				cout<<LOCKS.lock_grasp<<endl;
+
 				//				publish_haptic_commands();
 				break;
 			}
@@ -387,6 +389,17 @@ void* Raven_Control::console_process(void)
 				HAPTIC_FEEDBACK = !HAPTIC_FEEDBACK;
 				break;
 			}
+			case 'g':
+			{
+				GRIP_FORCE_FEEDBACK = !GRIP_FORCE_FEEDBACK;
+				cout<<GRIP_FORCE_FEEDBACK<<endl;
+				break;
+			}
+			case 't':
+
+				TRANS_FORCE_FEEDBACK = !TRANS_FORCE_FEEDBACK;
+								cout<<TRANS_FORCE_FEEDBACK<<endl;
+								break;
 			case '[':
 						{
 							LEFT_ARM_STATUS = !LEFT_ARM_RAVEN.get_Disabled();
@@ -648,6 +661,19 @@ void Raven_Control::publish_raven_control()
 			msg_haptic_commands.grip_force[0] = 0;
 			msg_haptic_commands.grip_force[1] = 0;
 	}
+	if (GRIP_FORCE_FEEDBACK)
+	{
+	//	msg_haptic_commands.grip_force[0] = CURR_FORCE_SENSOR.fz;
+		msg_haptic_commands.grip_force[1] = -CURR_FORCE_SENSOR.fz;
+	//	std::cout<<CURR_FORCE_SENSOR.fz<<endl;
+	}
+	if (TRANS_FORCE_FEEDBACK)
+	{
+		//	msg_haptic_commands.grip_force[0] = CURR_FORCE_SENSOR.fz;
+			msg_haptic_commands.force[5] = -CURR_FORCE_SENSOR.fx;
+		//	std::cout<<CURR_FORCE_SENSOR.fz<<endl;
+	}
+
 
 	haptic_publisher.publish(msg_haptic_commands);
 
@@ -744,6 +770,13 @@ void Raven_Control::callback_haptic_state(haptic_device msg)
 	// (2) update recieved data count
 	SUB_COUNT ++;
 	RECEIVED_FIRST = true;
+}
+void Raven_Control::callback_ati_data(ati_fsensor::ati_data msg)
+{
+	CURR_FORCE_SENSOR.fx = msg.fx;
+	CURR_FORCE_SENSOR.fy = msg.fy;
+	CURR_FORCE_SENSOR.fz = msg.fz;
+
 }
 
 
