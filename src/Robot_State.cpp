@@ -927,8 +927,13 @@ tf::Transform Robot_State::ComputeTeleoperation(Robot_State hapticDev)
 		tf::Quaternion extra_rotation(0,0,0,1);
 		if(hapticDev.ArmType == RIGHT_ARM)
 			extra_rotation = tf::Quaternion( 0.5, -0.5, 0.5, -0.5 );
+		//	extra_rotation = tf::Quaternion( 0.5, 0.5, -0.5, 0.5 );
+
 		else
-			extra_rotation = tf::Quaternion( -0.5, 0.5, 0.5, -0.5 );
+			//extra_rotation = tf::Quaternion( -0.5, 0.5, 0.5, -0.5 );
+			extra_rotation = tf::Quaternion( 0.5, -0.5, 0.5, -0.5 );
+		//extra_rotation = tf::Quaternion( -0.5, 0.5, 0.5, -0.5 );
+
 
 		tf::Vector3 u(extra_rotation.x(), extra_rotation.y(), extra_rotation.z());
 		// Extract the scalar part of the quaternion
@@ -944,15 +949,28 @@ tf::Transform Robot_State::ComputeTeleoperation(Robot_State hapticDev)
 		//		Delta_Pos.setX(-Delta_Pos.x());
 		//		Delta_Pos.setY(-Delta_Pos.y());
 		//	}
-		Delta_Pos = (this->Center)-Delta_Pos;
+		//Delta_Pos = (this->Center)-Delta_Pos;
 		//	if(hapticDev.ArmType != RIGHT_ARM)
 		//cout<<Delta_Pos.x()<<"\t"<<Delta_Pos.y()<<"\t"<<Delta_Pos.z()<<"\t"<<endl;
-		tempQcurr=tempQcurr*extra_rotation;
+		//tempQcurr=extra_rotation*tempQcurr;
 		tempQprev = tempQprev.inverse();
-		Delta_Ori = tempQprev*tempQcurr;
+		Delta_Ori = extra_rotation*(tempQcurr*tempQprev)*extra_rotation.inverse();
 		// (3) add increment to return variable
+		if(hapticDev.ArmType != RIGHT_ARM)
+		{
+			Delta_Pos.setZ(-Delta_Pos.z());
+			Delta_Pos = (this->Center)-Delta_Pos;
+	//		Delta_Ori.setX(double(-Delta_Ori.getX()));
+	//		Delta_Ori.setY(double(-Delta_Ori.getY()));
+			//Delta_Ori.x = -Delta_Ori.x;
+			//Delta_Ori.y = -Delta_Ori.y;
+		}
+		else
+			Delta_Pos = (this->Center)-Delta_Pos;
+
 		TF_INCR.setOrigin(Delta_Pos);
 		TF_INCR.setRotation(Delta_Ori);
+
 
 	}
 	else
@@ -1037,7 +1055,19 @@ force_feedback Robot_State::ComputeForces(Robot_State ravenArm, haptic_locks loc
 		hapticCenterOri.setIdentity();
 		//hapticCenterOri.setEulerYPR(0,-M_PI/4,0);
 		//hapticCenterOri.setEulerYPR(6*M_PI/180,-32.5679858*M_PI/180,-12.5718119*M_PI/180);
-		hapticCenterOri.setRPY(16.8754*M_PI/180,-45.2293*M_PI/180,(-156.2177+180)*M_PI/180);
+		tfScalar roll,pitch,yaw;
+		tf::Matrix3x3 tempOri;
+		tf::Matrix3x3 raven_to_sigma(0,-1,0,
+				0,0,-1,
+				1,0,0);
+		tempOri = raven_to_sigma*ravenArm.Current_Ori_mat;
+		tempOri.getRPY(roll,pitch,yaw);
+		cout.precision(3);
+		if (this->ArmType == RIGHT_ARM)
+		cout<<roll/M_PI*180<<" "<<pitch/M_PI*180<<" "<<(yaw)/M_PI*180<<"\r";
+		hapticCenterOri.setRPY(roll,-pitch,yaw+M_PI);
+
+		//hapticCenterOri.setRPY(16.8754*M_PI/180,-45.2293*M_PI/180,(-156.2177+180)*M_PI/180);
 		// 16.8754  -45.2293 -156.2177
 
 		//hapticCenterOri.setRPY()
